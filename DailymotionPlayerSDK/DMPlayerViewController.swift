@@ -55,7 +55,7 @@ open class DMPlayerViewController: UIViewController {
   ///   - allowIDFA:   Allow IDFA Collection. Defaults true
   ///   - allowPiP: Allow Picture in Picture on iPad. Defaults true
   public init(parameters: [String: Any], baseUrl: URL? = nil, accessToken: String? = nil,
-              cookies: [HTTPCookie]? = nil, allowIDFA: Bool = true, allowPiP: Bool = true) {
+              cookies: [HTTPCookie]? = nil, allowIDFA: Bool = true, allowPiP: Bool = true, allowInlineMedia: Bool = true) {
     super.init(nibName: nil, bundle: nil)
     if allowIDFA {
       deviceIdentifier = advertisingIdentifier()
@@ -63,11 +63,13 @@ open class DMPlayerViewController: UIViewController {
     if parameters.contains(where: { $0.key == DMPlayerViewController.loggerParameterKey }) {
       loggerEnabled = true
     }
-    self.loadWebView(parameters: parameters, baseUrl: baseUrl, accessToken: accessToken, cookies: cookies, allowPiP: allowPiP)
+    self.loadWebView(parameters: parameters, baseUrl: baseUrl, accessToken: accessToken, cookies: cookies, allowPiP: allowPiP, allowInlineMedia: allowInlineMedia)
   }
   
-  private func newWebView(cookies: [HTTPCookie]?, allowPiP: Bool = true) -> WKWebView {
-    let webView = WKWebView(frame: .zero, configuration: newConfiguration(cookies: cookies, allowPiP: allowPiP))
+  private func newWebView(cookies: [HTTPCookie]?, allowPiP: Bool = true, allowInlineMedia: Bool = true) -> WKWebView {
+    let webView = WKWebView(frame: .zero, configuration: newConfiguration(cookies: cookies,
+                                                                          allowPiP: allowPiP,
+                                                                          allowInlineMedia: allowInlineMedia))
     webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     webView.backgroundColor = .clear
     webView.isOpaque = false
@@ -80,9 +82,9 @@ open class DMPlayerViewController: UIViewController {
     super.init(coder: aDecoder)
   }
   
-  open func loadWebView(parameters: [String: Any], baseUrl: URL? = nil, accessToken: String? = nil, cookies: [HTTPCookie]? = nil, allowPiP: Bool = true) {
+  open func loadWebView(parameters: [String: Any], baseUrl: URL? = nil, accessToken: String? = nil, cookies: [HTTPCookie]? = nil, allowPiP: Bool = true, allowInlineMedia: Bool = true) {
     self.baseUrl = baseUrl ?? DMPlayerViewController.defaultUrl
-    webView = newWebView(cookies: cookies, allowPiP: allowPiP)
+    webView = newWebView(cookies: cookies, allowPiP: allowPiP, allowInlineMedia: allowInlineMedia)
     view = webView
     let request = newRequest(parameters: parameters, accessToken: accessToken, cookies: cookies)
     webView.load(request)
@@ -187,9 +189,9 @@ open class DMPlayerViewController: UIViewController {
     return request
   }
   
-  private func newConfiguration(cookies: [HTTPCookie]?, allowPiP: Bool = true) -> WKWebViewConfiguration {
+  private func newConfiguration(cookies: [HTTPCookie]?, allowPiP: Bool = true, allowInlineMedia: Bool = true) -> WKWebViewConfiguration {
     let configuration = WKWebViewConfiguration()
-    configuration.allowsInlineMediaPlayback = true
+    configuration.allowsInlineMediaPlayback = allowInlineMedia
     if #available(iOS 9.0, *) {
       configuration.requiresUserActionForMediaPlayback = false
       configuration.allowsAirPlayForMediaPlayback = true
